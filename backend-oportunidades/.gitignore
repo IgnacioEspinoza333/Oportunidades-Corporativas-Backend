@@ -38,3 +38,6 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+# Archivos de la base de datos H2 (se regeneran al iniciar)
+data/
