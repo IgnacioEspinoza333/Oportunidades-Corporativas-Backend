@@ -1,0 +1,9 @@
+$kind: collection
+auth:
+  - id: 5459657f-fb04-450b-8c8a-4c797699280c
+    type: apikey
+    name: API Key
+    credentials:
+      key: X-Usuario-Id
+      value: "4"
+order: 4000

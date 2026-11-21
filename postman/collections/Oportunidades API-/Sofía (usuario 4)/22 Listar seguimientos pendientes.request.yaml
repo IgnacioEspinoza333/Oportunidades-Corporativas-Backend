@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/seguimientos/pendientes"
+method: GET
+examples: .resources/22 Listar seguimientos pendientes.resources/examples
+order: 4000

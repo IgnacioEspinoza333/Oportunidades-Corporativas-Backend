@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/1/estado"
+method: PATCH
+body:
+  type: json
+  content: '{"estado":"OPORTUNIDAD_CERRADA"}'
+examples: .resources/09 Cambiar estado con transición inválida.resources/examples
+order: 6000

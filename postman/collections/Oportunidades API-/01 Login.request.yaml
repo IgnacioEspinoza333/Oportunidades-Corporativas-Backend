@@ -1,0 +1,10 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+body:
+  type: json
+  content: '{"correo":"ana.ejecutiva@ejemplo.cl","password":"Ana12345"}'
+auth:
+  type: noauth
+order: 1000

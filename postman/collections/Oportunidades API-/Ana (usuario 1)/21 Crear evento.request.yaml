@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/eventos"
+method: POST
+body:
+  type: json
+  content: '{"nombre":"Evento prueba","fechaInicio":1893456000000,"fechaTermino":1893456000000,"organizacionId":1,"publicoEsperado":100}'
+examples: .resources/21 Crear evento.resources/examples
+order: 17000

@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/3\t"
+  method: GET
+response:
+  statusCode: 403
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Date: Sat, 21 Nov 2026 20:08:28 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "mensaje": "No tienes acceso a esta oportunidad",
+        "campos": null
+      }
+order: 1000

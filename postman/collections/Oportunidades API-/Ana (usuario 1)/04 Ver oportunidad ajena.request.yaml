@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/3\t"
+method: GET
+examples: .resources/04 Ver oportunidad ajena.resources/examples
+order: 2000

@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/eventos"
+  method: POST
+  body:
+    type: json
+    content: '{"nombre":"Evento prueba","fechaInicio":1893456000000,"fechaTermino":1893456000000,"organizacionId":1,"publicoEsperado":100}'
+response:
+  statusCode: 201
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "359"
+    Date: Sat, 21 Nov 2026 20:35:35 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "id": 33,
+        "nombre": "Evento prueba",
+        "tipo": "EVENTO_CORPORATIVO",
+        "descripcion": "",
+        "fechaInicio": 1893456000000,
+        "fechaTermino": 1893456000000,
+        "horario": "",
+        "direccion": "",
+        "comuna": "",
+        "region": "",
+        "organizacionId": 1,
+        "organizacionNombre": "Municipalidad de Valle Verde",
+        "publicoEsperado": 100,
+        "publicoObjetivo": "",
+        "condiciones": "",
+        "costoReferencial": 0,
+        "observaciones": ""
+      }
+order: 1000

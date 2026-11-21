@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/api/organizaciones"
+method: POST
+body:
+  type: json
+  content: '{"nombre":"Organización de prueba"}'
+order: 13000

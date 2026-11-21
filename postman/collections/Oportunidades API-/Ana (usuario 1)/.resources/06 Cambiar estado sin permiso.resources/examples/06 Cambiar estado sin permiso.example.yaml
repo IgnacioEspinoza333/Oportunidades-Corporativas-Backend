@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/1/estado"
+  method: PATCH
+  body:
+    type: json
+    content: '{"estado":"PARTICIPACION_CONFIRMADA"}'
+response:
+  statusCode: 403
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Date: Sat, 21 Nov 2026 20:21:57 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "mensaje": "Solo un supervisor puede confirmar o descartar una oportunidad",
+        "campos": null
+      }
+order: 1000

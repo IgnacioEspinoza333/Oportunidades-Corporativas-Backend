@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/ruta-que-no-existe"
+  method: GET
+response:
+  statusCode: 404
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Date: Sat, 21 Nov 2026 20:38:08 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "mensaje": "La ruta solicitada no existe",
+        "campos": null
+      }
+order: 1000

@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/1/seguimientos"
+  method: POST
+  body:
+    type: json
+    content: '{"tipoAccion":"LLAMADA","resultado":"Llamada de prueba ok","contactoId":1}'
+response:
+  statusCode: 201
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "255"
+    Date: Sat, 21 Nov 2026 20:26:05 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "id": 34,
+        "tipoAccion": "LLAMADA",
+        "fechaHora": 1795292765939,
+        "resultado": "Llamada de prueba ok",
+        "proximaAccion": "",
+        "fechaProximoSeguimiento": null,
+        "estadoNuevo": null,
+        "observaciones": "",
+        "usuarioNombre": "Ana Pérez (demo)",
+        "contactoNombre": "Marta Lagos (demo)"
+      }
+order: 1000

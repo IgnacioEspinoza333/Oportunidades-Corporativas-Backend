@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/organizaciones"
+method: POST
+body:
+  type: json
+  content: '{"nombre":"AB"}'
+examples: .resources/16 Crear organización con nombre muy corto.resources/examples
+order: 12000

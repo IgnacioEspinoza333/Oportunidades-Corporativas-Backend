@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ruta-que-no-existe"
+method: GET
+examples: .resources/24 Ruta inexistente.resources/examples
+order: 18000

@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades"
+  method: GET
+response:
+  statusCode: 401
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Date: Sat, 21 Nov 2026 20:37:29 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "mensaje": "Falta el encabezado X-Usuario-Id",
+        "campos": null
+      }
+order: 1000

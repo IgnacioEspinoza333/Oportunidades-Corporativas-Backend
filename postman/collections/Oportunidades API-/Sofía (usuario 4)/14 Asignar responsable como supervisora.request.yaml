@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/4/responsable"
+method: PATCH
+body:
+  type: json
+  content: '{"responsableId":1}'
+examples: .resources/14 Asignar responsable como supervisora.resources/examples
+order: 3000

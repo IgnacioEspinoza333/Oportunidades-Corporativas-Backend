@@ -1,0 +1,84 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades"
+  method: GET
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "1568"
+    Date: Sat, 21 Nov 2026 20:07:27 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": 3,
+          "nombre": "Jornada interna Alfa",
+          "estado": "CONTACTO_PENDIENTE",
+          "prioridad": "MEDIA",
+          "potencial": 3,
+          "eventoNombre": "Jornada de Beneficios Alfa",
+          "eventoFecha": 1795488357267,
+          "comuna": "Las Condes",
+          "organizacionNombre": "Holding Alfa Demo S.A.",
+          "responsableId": 2,
+          "responsableNombre": "Carlos Soto (demo)"
+        },
+        {
+          "id": 1,
+          "nombre": "Stand en Feria de Bienestar",
+          "estado": "PROPUESTA_ENVIADA",
+          "prioridad": "ALTA",
+          "potencial": 4,
+          "eventoNombre": "Feria de Bienestar Municipal",
+          "eventoFecha": 1795747557265,
+          "comuna": "Puente Alto",
+          "organizacionNombre": "Municipalidad de Valle Verde",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)"
+        },
+        {
+          "id": 5,
+          "nombre": "Stand en Feria Estudiantil",
+          "estado": "EN_ESPERA_RESPUESTA",
+          "prioridad": "BAJA",
+          "potencial": 3,
+          "eventoNombre": "Feria de Beneficios Estudiantiles",
+          "eventoFecha": 1796265957269,
+          "comuna": "Concepción",
+          "organizacionNombre": "Instituto Demo del Sur",
+          "responsableId": 3,
+          "responsableNombre": "Diego Fuentes (demo)"
+        },
+        {
+          "id": 2,
+          "nombre": "Participación Expo Empresas",
+          "estado": "CONTACTO_REALIZADO",
+          "prioridad": "ALTA",
+          "potencial": 5,
+          "eventoNombre": "Expo Empresas Andina",
+          "eventoFecha": 1796957157266,
+          "comuna": "Santiago",
+          "organizacionNombre": "Corporación Feria Andina",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)"
+        },
+        {
+          "id": 4,
+          "nombre": "Activación Festival de Verano",
+          "estado": "EVENTO_IDENTIFICADO",
+          "prioridad": "MEDIA",
+          "potencial": 5,
+          "eventoNombre": "Festival de Verano Plaza",
+          "eventoFecha": 1798253157268,
+          "comuna": "Viña del Mar",
+          "organizacionNombre": "Centro Comercial Plaza Demo",
+          "responsableId": 2,
+          "responsableNombre": "Carlos Soto (demo)"
+        }
+      ]
+order: 1000
