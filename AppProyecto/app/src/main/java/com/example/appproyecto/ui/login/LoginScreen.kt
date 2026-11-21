@@ -45,7 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun LoginScreen(
     onLoginExitoso: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var verPassword by remember { mutableStateOf(false) }
@@ -147,4 +147,4 @@ fun LoginScreen(
             }
         }
     }
-}
+}

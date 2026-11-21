@@ -1,9 +1,12 @@
 package com.example.appproyecto.ui.login
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.repository.UsuarioRepository
 import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarCorreo
@@ -25,11 +28,11 @@ data class LoginUiState(
     val loginExitoso: Boolean = false
 )
 
-class LoginViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository =
-        UsuarioRepository(AppDatabase.getInstance(application).usuarioDao())
-    private val sesion = SesionManager(application)
+// Las dependencias llegan por el constructor: el ViewModel no crea nada por su cuenta.
+class LoginViewModel(
+    private val repository: UsuarioRepository,
+    private val sesion: SesionManager
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -63,4 +66,17 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-}
+
+    companion object {
+        /** Fábrica: le dice a Android cómo construir este ViewModel con sus dependencias. */
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as AppProyectoApp
+                LoginViewModel(
+                    repository = app.contenedor.usuarioRepository,
+                    sesion = app.contenedor.sesion
+                )
+            }
+        }
+    }
+}
