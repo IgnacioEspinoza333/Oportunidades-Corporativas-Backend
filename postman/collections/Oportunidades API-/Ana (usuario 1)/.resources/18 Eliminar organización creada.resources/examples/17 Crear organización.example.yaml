@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/organizaciones"
+  method: POST
+  body:
+    type: json
+    content: '{"nombre":"Organización de prueba"}'
+response:
+  statusCode: 201
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "150"
+    Date: Sat, 21 Nov 2026 20:30:21 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "id": 33,
+        "nombre": "Organización de prueba",
+        "tipo": "EMPRESA",
+        "rubro": "",
+        "comuna": "",
+        "region": "",
+        "sitioWeb": "",
+        "publicoAsociado": "",
+        "observaciones": ""
+      }
+order: 1000

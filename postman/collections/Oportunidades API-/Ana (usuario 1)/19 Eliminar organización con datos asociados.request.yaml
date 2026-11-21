@@ -1,0 +1,9 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/organizaciones/1"
+method: DELETE
+body:
+  type: json
+  content: ""
+examples: .resources/19 Eliminar organización con datos asociados.resources/examples
+order: 15000

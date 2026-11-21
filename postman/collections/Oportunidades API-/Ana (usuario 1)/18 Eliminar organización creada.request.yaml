@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/organizaciones/{33}"
+method: DELETE
+examples: .resources/18 Eliminar organización creada.resources/examples
+order: 14000

@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/1/seguimientos"
+method: GET
+examples: .resources/08 Ver historial de seguimientos.resources/examples
+order: 5000

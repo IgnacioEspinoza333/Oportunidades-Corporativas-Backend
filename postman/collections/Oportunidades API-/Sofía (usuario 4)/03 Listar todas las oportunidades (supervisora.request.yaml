@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades"
+method: GET
+examples: .resources/03 Listar todas las oportunidades (supervisora.resources/examples
+order: 1000

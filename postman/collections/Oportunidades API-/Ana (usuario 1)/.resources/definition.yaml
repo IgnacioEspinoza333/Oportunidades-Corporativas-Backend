@@ -1,0 +1,9 @@
+$kind: collection
+auth:
+  - id: 28e5d37b-4d96-4c23-b1a9-0addca75932a
+    type: apikey
+    name: API Key
+    credentials:
+      key: X-Usuario-Id
+      value: "1"
+order: 3000

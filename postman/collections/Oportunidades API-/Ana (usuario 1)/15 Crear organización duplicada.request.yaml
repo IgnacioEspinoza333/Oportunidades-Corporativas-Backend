@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/organizaciones"
+method: POST
+body:
+  type: json
+  content: '{"nombre":"Instituto Demo del Sur"}'
+examples: .resources/15 Crear organización duplicada.resources/examples
+order: 11000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/4/responsable"
+method: PATCH
+body:
+  type: json
+  content: '{"responsableId":1}'
+examples: .resources/13 Asignar responsable sin permiso.resources/examples
+order: 10000

@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/1/estado"
+  method: PATCH
+  body:
+    type: json
+    content: '{"estado":"EN_ESPERA_RESPUESTA"}'
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "789"
+    Date: Sat, 21 Nov 2026 20:22:49 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "id": 1,
+        "nombre": "Stand en Feria de Bienestar",
+        "tipo": "ACTIVIDAD_MUNICIPAL",
+        "descripcion": "",
+        "fuente": "Sitio web municipal",
+        "fechaDeteccion": 1793933157270,
+        "prioridad": "ALTA",
+        "potencial": 4,
+        "afinidad": 5,
+        "estado": "EN_ESPERA_RESPUESTA",
+        "fechaLimitePostulacion": 1795401957270,
+        "fechaActualizacion": 1795292569498,
+        "observaciones": "",
+        "responsableId": 1,
+        "responsableNombre": "Ana Pérez (demo)",
+        "eventoId": 1,
+        "eventoNombre": "Feria de Bienestar Municipal",
+        "fechaInicio": 1795747557265,
+        "fechaTermino": 1795747557265,
+        "horario": "10:00 - 17:00",
+        "direccion": "Plaza de Armas (demo)",
+        "comuna": "Puente Alto",
+        "region": "Metropolitana",
+        "publicoEsperado": 1500,
+        "publicoObjetivo": "Familias",
+        "condiciones": "Stand de 3x3 m",
+        "costoReferencial": 150000,
+        "organizacionId": 1,
+        "organizacionNombre": "Municipalidad de Valle Verde"
+      }
+order: 1000

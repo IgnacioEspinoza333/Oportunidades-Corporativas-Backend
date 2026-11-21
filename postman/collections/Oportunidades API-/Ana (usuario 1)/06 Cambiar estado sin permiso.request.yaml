@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/1/estado"
+method: PATCH
+body:
+  type: json
+  content: '{"estado":"PARTICIPACION_CONFIRMADA"}'
+examples: .resources/06 Cambiar estado sin permiso.resources/examples
+order: 3000

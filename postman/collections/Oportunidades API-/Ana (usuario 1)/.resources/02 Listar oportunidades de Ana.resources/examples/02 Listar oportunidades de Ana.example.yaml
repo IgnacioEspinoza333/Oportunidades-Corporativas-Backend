@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades"
+  method: GET
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "623"
+    Date: Sat, 21 Nov 2026 20:10:51 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": 1,
+          "nombre": "Stand en Feria de Bienestar",
+          "estado": "PROPUESTA_ENVIADA",
+          "prioridad": "ALTA",
+          "potencial": 4,
+          "eventoNombre": "Feria de Bienestar Municipal",
+          "eventoFecha": 1795747557265,
+          "comuna": "Puente Alto",
+          "organizacionNombre": "Municipalidad de Valle Verde",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)"
+        },
+        {
+          "id": 2,
+          "nombre": "Participación Expo Empresas",
+          "estado": "CONTACTO_REALIZADO",
+          "prioridad": "ALTA",
+          "potencial": 5,
+          "eventoNombre": "Expo Empresas Andina",
+          "eventoFecha": 1796957157266,
+          "comuna": "Santiago",
+          "organizacionNombre": "Corporación Feria Andina",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)"
+        }
+      ]
+order: 1000

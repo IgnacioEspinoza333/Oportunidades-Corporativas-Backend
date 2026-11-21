@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/1/estado"
+method: PATCH
+body:
+  type: json
+  content: '{"estado":"EN_ESPERA_RESPUESTA"}'
+examples: .resources/07 Cambiar estado válido.resources/examples
+order: 4000

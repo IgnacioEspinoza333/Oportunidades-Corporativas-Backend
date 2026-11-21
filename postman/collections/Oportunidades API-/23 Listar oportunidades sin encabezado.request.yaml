@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades"
+method: GET
+examples: .resources/23 Listar oportunidades sin encabezado.resources/examples
+order: 6000

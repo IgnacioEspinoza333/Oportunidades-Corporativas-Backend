@@ -1,0 +1,67 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/1/seguimientos"
+  method: GET
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "1261"
+    Date: Sat, 21 Nov 2026 20:23:34 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": 33,
+          "tipoAccion": "SEGUIMIENTO",
+          "fechaHora": 1795292569498,
+          "resultado": "Cambio de estado: Propuesta enviada → En espera de respuesta",
+          "proximaAccion": "",
+          "fechaProximoSeguimiento": null,
+          "estadoNuevo": "EN_ESPERA_RESPUESTA",
+          "observaciones": "",
+          "usuarioNombre": "Ana Pérez (demo)",
+          "contactoNombre": null
+        },
+        {
+          "id": 3,
+          "tipoAccion": "ENVIO_PROPUESTA",
+          "fechaHora": 1794883557277,
+          "resultado": "Propuesta ficticia enviada.",
+          "proximaAccion": "Llamar para confirmar recepción",
+          "fechaProximoSeguimiento": 1795142757277,
+          "estadoNuevo": "PROPUESTA_ENVIADA",
+          "observaciones": "",
+          "usuarioNombre": "Ana Pérez (demo)",
+          "contactoNombre": "Marta Lagos (demo)"
+        },
+        {
+          "id": 2,
+          "tipoAccion": "PRIMER_CONTACTO",
+          "fechaHora": 1794365157276,
+          "resultado": "Marta Lagos se muestra interesada.",
+          "proximaAccion": "Enviar propuesta",
+          "fechaProximoSeguimiento": 1794797157276,
+          "estadoNuevo": "CONTACTO_REALIZADO",
+          "observaciones": "",
+          "usuarioNombre": "Ana Pérez (demo)",
+          "contactoNombre": "Marta Lagos (demo)"
+        },
+        {
+          "id": 1,
+          "tipoAccion": "INVESTIGACION_INICIAL",
+          "fechaHora": 1793933157274,
+          "resultado": "Evento detectado en el sitio web municipal.",
+          "proximaAccion": "Buscar contacto en Bienestar",
+          "fechaProximoSeguimiento": 1794105957274,
+          "estadoNuevo": null,
+          "observaciones": "",
+          "usuarioNombre": "Ana Pérez (demo)",
+          "contactoNombre": null
+        }
+      ]
+order: 1000

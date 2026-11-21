@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/oportunidades/1/seguimientos"
+method: POST
+body:
+  type: json
+  content: '{"tipoAccion":"LLAMADA","resultado":"Llamada de prueba ok"}'
+examples: .resources/10 Registrar llamada sin contacto.resources/examples
+order: 7000

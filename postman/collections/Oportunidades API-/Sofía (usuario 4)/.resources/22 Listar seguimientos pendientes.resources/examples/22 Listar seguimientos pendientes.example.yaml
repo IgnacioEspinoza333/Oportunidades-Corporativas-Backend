@@ -1,0 +1,55 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/seguimientos/pendientes"
+  method: GET
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "887"
+    Date: Sat, 21 Nov 2026 20:36:15 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "oportunidadId": 1,
+          "oportunidadNombre": "Stand en Feria de Bienestar",
+          "estado": "EN_ESPERA_RESPUESTA",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)",
+          "proximaAccion": "Llamar para confirmar recepción",
+          "fecha": 1795142757277
+        },
+        {
+          "oportunidadId": 3,
+          "oportunidadNombre": "Jornada interna Alfa",
+          "estado": "CONTACTO_PENDIENTE",
+          "responsableId": 2,
+          "responsableNombre": "Carlos Soto (demo)",
+          "proximaAccion": "Realizar primer contacto",
+          "fecha": 1795315557280
+        },
+        {
+          "oportunidadId": 2,
+          "oportunidadNombre": "Participación Expo Empresas",
+          "estado": "CONTACTO_REALIZADO",
+          "responsableId": 1,
+          "responsableNombre": "Ana Pérez (demo)",
+          "proximaAccion": "Enviar presentación",
+          "fecha": 1795401957279
+        },
+        {
+          "oportunidadId": 5,
+          "oportunidadNombre": "Stand en Feria Estudiantil",
+          "estado": "EN_ESPERA_RESPUESTA",
+          "responsableId": 3,
+          "responsableNombre": "Diego Fuentes (demo)",
+          "proximaAccion": "Volver a llamar",
+          "fecha": 1795488357282
+        }
+      ]
+order: 1000

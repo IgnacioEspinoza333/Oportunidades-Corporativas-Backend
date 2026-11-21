@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/oportunidades/4/responsable"
+  method: PATCH
+  body:
+    type: json
+    content: '{"responsableId":1}'
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    Content-Type: application/json
+    Content-Length: "745"
+    Date: Sat, 21 Nov 2026 20:28:16 GMT
+    Keep-Alive: timeout=60
+    Connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "id": 4,
+        "nombre": "Activación Festival de Verano",
+        "tipo": "ACTIVACION_COMERCIAL",
+        "descripcion": "",
+        "fuente": "Correo",
+        "fechaDeteccion": 1795142757273,
+        "prioridad": "MEDIA",
+        "potencial": 5,
+        "afinidad": 3,
+        "estado": "EVENTO_IDENTIFICADO",
+        "fechaLimitePostulacion": null,
+        "fechaActualizacion": 1795292896148,
+        "observaciones": "",
+        "responsableId": 1,
+        "responsableNombre": "Ana Pérez (demo)",
+        "eventoId": 4,
+        "eventoNombre": "Festival de Verano Plaza",
+        "fechaInicio": 1798253157268,
+        "fechaTermino": 1798425957268,
+        "horario": "11:00 - 21:00",
+        "direccion": "",
+        "comuna": "Viña del Mar",
+        "region": "Valparaíso",
+        "publicoEsperado": 8000,
+        "publicoObjetivo": "Visitantes y turistas",
+        "condiciones": "",
+        "costoReferencial": 600000,
+        "organizacionId": 4,
+        "organizacionNombre": "Centro Comercial Plaza Demo"
+      }
+order: 1000
