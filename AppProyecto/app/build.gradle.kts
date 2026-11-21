@@ -60,4 +60,9 @@ dependencies {
     implementation(libs.androidx.sqlite.bundled)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Conexión con el backend (Retrofit) y con la API externa de feriados
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
 }
