@@ -1,0 +1,14 @@
+# Android Studio y Gradle
+.gradle/
+build/
+.idea/
+.kotlin/
+*.iml
+local.properties
+.cxx/
+.externalNativeBuild/
+captures/
+.DS_Store
+
+# Backend: base de datos H2 local
+backend-oportunidades/data/
