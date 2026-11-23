@@ -4,21 +4,17 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.EvidenciaItem
 import com.example.appproyecto.data.model.Resultado
 import com.example.appproyecto.data.model.Usuario
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.repository.EvidenciaRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
-import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarTextoOpcional
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -47,10 +43,9 @@ class EvidenciasViewModel(
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getInstance(application)
-    private val repository = EvidenciaRepository(db.evidenciaDao(), db.oportunidadDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val sesion = SesionManager(application)
+    private val contenedor = (application as AppProyectoApp).contenedor
+    private val repository = contenedor.evidenciaRepository
+    private val usuarioRepository = contenedor.usuarioRepository
 
     private val oportunidadId: Long = savedStateHandle.get<Long>("id") ?: 0L
 
@@ -59,14 +54,12 @@ class EvidenciasViewModel(
 
     init {
         viewModelScope.launch {
-            actor.value = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }?.takeIf { it.activo }
+            actor.value = (usuarioRepository.obtenerActual() as? Respuesta.Exito)?.datos?.takeIf { it.activo }
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val evidencias = actor.flatMapLatest { a ->
-        if (a == null) flowOf(emptyList()) else repository.observarPara(a, oportunidadId)
-    }
+    // Las evidencias están en Room, así que la lista se actualiza sola al guardar una nueva
+    private val evidencias = repository.observarPara(oportunidadId)
 
     val uiState: StateFlow<EvidenciasUiState> = combine(evidencias, borrador) { lista, b ->
         EvidenciasUiState(

@@ -40,6 +40,10 @@ import com.example.appproyecto.data.model.Contacto
 import com.example.appproyecto.data.model.Organizacion
 import com.example.appproyecto.data.model.TipoOrganizacion
 import com.example.appproyecto.data.model.aEnum
+import androidx.compose.material3.Button
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,10 +52,12 @@ fun OrganizacionDetalleScreen(
     onEditar: (Long) -> Unit,
     onNuevoContacto: (Long) -> Unit,
     onEditarContacto: (organizacionId: Long, contactoId: Long) -> Unit,
-    viewModel: OrganizacionDetalleViewModel = viewModel()
+    viewModel: OrganizacionDetalleViewModel = viewModel(factory = OrganizacionDetalleViewModel.Factory)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val org = estado.organizacion
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.cargar() }
 
     Scaffold(
         topBar = {
@@ -84,8 +90,17 @@ fun OrganizacionDetalleScreen(
                 CircularProgressIndicator()
             }
 
-            org == null -> Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("La organización no existe", style = MaterialTheme.typography.bodyLarge)
+            org == null -> Column(
+                modifier = Modifier.padding(padding).fillMaxSize().padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(estado.error ?: "La organización no existe", style = MaterialTheme.typography.bodyLarge)
+                if (estado.error != null) {
+                    Button(onClick = viewModel::reintentar, modifier = Modifier.padding(top = 12.dp)) {
+                        Text("Reintentar")
+                    }
+                }
             }
 
             else -> LazyColumn(

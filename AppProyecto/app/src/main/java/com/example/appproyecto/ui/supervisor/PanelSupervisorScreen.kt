@@ -46,6 +46,8 @@ import com.example.appproyecto.data.model.Prioridad
 import com.example.appproyecto.data.model.Usuario
 import com.example.appproyecto.data.model.aEnum
 import com.example.appproyecto.util.formatearFecha
+import com.example.appproyecto.ui.componentes.MensajeError
+
 
 /** Panel del supervisor: visión global del equipo y asignación de responsables. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +74,14 @@ fun PanelSupervisorScreen(viewModel: PanelSupervisorViewModel = viewModel()) {
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .padding(24.dp)
+                    )
+                }
+
+                estado.error != null && estado.oportunidades.isEmpty() -> {
+                    MensajeError(
+                        mensaje = estado.error ?: "",
+                        onReintentar = viewModel::reintentar,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 

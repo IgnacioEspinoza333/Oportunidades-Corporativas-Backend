@@ -64,7 +64,7 @@ import java.io.File
 @Composable
 fun EventoFormScreen(
     onVolver: () -> Unit,
-    viewModel: EventoFormViewModel = viewModel()
+    viewModel: EventoFormViewModel = viewModel(factory = EventoFormViewModel.Factory)
 ) {
     val s by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current

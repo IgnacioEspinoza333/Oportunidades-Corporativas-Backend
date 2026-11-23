@@ -1,17 +1,17 @@
 package com.example.appproyecto.ui.directorio
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.Organizacion
-import com.example.appproyecto.data.model.Resultado
 import com.example.appproyecto.data.model.TipoOrganizacion
-import com.example.appproyecto.data.model.Usuario
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.repository.OrganizacionRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
-import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarSitioWebOpcional
 import com.example.appproyecto.util.validarTextoObligatorio
 import com.example.appproyecto.util.validarTextoOpcional
@@ -45,15 +45,9 @@ data class OrganizacionFormUiState(
 )
 
 class OrganizacionFormViewModel(
-    application: Application,
-    savedStateHandle: SavedStateHandle
-) : AndroidViewModel(application) {
-
-    private val db = AppDatabase.getInstance(application)
-    private val repository = OrganizacionRepository(db.organizacionDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val sesion = SesionManager(application)
-    private var actor: Usuario? = null
+    savedStateHandle: SavedStateHandle,
+    private val repository: OrganizacionRepository
+) : ViewModel() {
 
     /** 0 = organización nueva. */
     private val organizacionId: Long = savedStateHandle["id"] ?: 0L
@@ -64,20 +58,20 @@ class OrganizacionFormViewModel(
     val uiState: StateFlow<OrganizacionFormUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            actor = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }?.takeIf { it.activo }
-            if (organizacionId != 0L) {
-                val o = repository.obtenerPorId(organizacionId)
-                if (o == null) {
-                    _uiState.update { it.copy(cargando = false, errorGeneral = "La organización no existe") }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            nombre = o.nombre, tipo = o.tipo, rubro = o.rubro, region = o.region,
-                            comuna = o.comuna, sitioWeb = o.sitioWeb, publicoAsociado = o.publicoAsociado,
-                            observaciones = o.observaciones, cargando = false
-                        )
+        if (organizacionId != 0L) {
+            viewModelScope.launch {
+                when (val r = repository.obtener(organizacionId)) {
+                    is Respuesta.Exito -> {
+                        val o = r.datos
+                        _uiState.update {
+                            it.copy(
+                                nombre = o.nombre, tipo = o.tipo, rubro = o.rubro, region = o.region,
+                                comuna = o.comuna, sitioWeb = o.sitioWeb, publicoAsociado = o.publicoAsociado,
+                                observaciones = o.observaciones, cargando = false
+                            )
+                        }
                     }
+                    is Respuesta.Error -> _uiState.update { it.copy(cargando = false, errorGeneral = r.mensaje) }
                 }
             }
         }
@@ -95,13 +89,9 @@ class OrganizacionFormViewModel(
 
     fun guardar() {
         val s = _uiState.value
-        val usuario = actor
-        if (s.guardando) return
-        if (usuario == null) {
-            _uiState.update { it.copy(errorGeneral = "No hay una sesión activa") }
-            return
-        }
+        if (s.guardando || s.cargando) return
 
+        // Primero se validan los campos en el teléfono; el backend vuelve a validar y revisa duplicados
         val errNombre = validarTextoObligatorio(s.nombre, "El nombre", 3, 80)
         val errRubro = validarTextoObligatorio(s.rubro, "El rubro", 3, 60)
         val errRegion = validarTextoObligatorio(s.region, "La región", 3, 40)
@@ -134,11 +124,20 @@ class OrganizacionFormViewModel(
                 publicoAsociado = s.publicoAsociado.trim(),
                 observaciones = s.observaciones.trim()
             )
-            val resultado = if (s.esEdicion) repository.actualizar(usuario, organizacion)
-            else repository.crear(usuario, organizacion)
+            val resultado = if (s.esEdicion) repository.actualizar(organizacion)
+            else repository.crear(organizacion)
             when (resultado) {
-                is Resultado.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
-                is Resultado.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+                is Respuesta.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
+                is Respuesta.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+            }
+        }
+    }
+
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val c = (this[APPLICATION_KEY] as AppProyectoApp).contenedor
+                OrganizacionFormViewModel(createSavedStateHandle(), c.organizacionRepository)
             }
         }
     }

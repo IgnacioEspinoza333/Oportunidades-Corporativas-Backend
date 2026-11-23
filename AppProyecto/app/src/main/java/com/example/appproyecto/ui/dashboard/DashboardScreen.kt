@@ -45,6 +45,9 @@ import com.example.appproyecto.util.DIAS_PROXIMOS
 import com.example.appproyecto.util.diasEntre
 import com.example.appproyecto.util.formatearFecha
 import com.example.appproyecto.util.rol
+import com.example.appproyecto.ui.componentes.MensajeError
+import com.example.appproyecto.util.textoDiasHasta
+
 
 /** Máximo de filas por sección: el Dashboard es un resumen, la lista completa está en Oportunidades. */
 private const val MAXIMO_FILAS = 5
@@ -71,8 +74,18 @@ fun DashboardScreen(
             }
         )
 
-        if (s.cargando || usuario == null) {
+        if (s.cargando) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            return@Column
+        }
+
+        // Error de conexión: sin usuario no hay nada que mostrar, se ofrece "Reintentar"
+        if (usuario == null) {
+            MensajeError(
+                mensaje = s.error ?: "No se pudo cargar el resumen",
+                onReintentar = viewModel::reintentar,
+                modifier = Modifier.fillMaxSize()
+            )
             return@Column
         }
 
@@ -164,6 +177,29 @@ fun DashboardScreen(
             }
 
             // ---------- Solo supervisor: carga del equipo ----------
+            // ---------- Próximos feriados (API externa) ----------
+            item { Seccion("Próximos feriados en Chile") }
+            if (s.feriados.isEmpty()) {
+                item {
+                    Vacio(
+                        if (s.feriadosError) "No se pudieron cargar los feriados."
+                        else "No hay feriados próximos."
+                    )
+                }
+            } else {
+                items(s.feriados, key = { "fer-${it.fecha}" }) { f ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(f.nombre, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                "${formatearFecha(f.fecha)} · ${textoDiasHasta(diasEntre(System.currentTimeMillis(), f.fecha))}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
             if (esSupervisor) {
                 item { Seccion("Carga del equipo") }
                 if (r.cargaEquipo.isEmpty()) {

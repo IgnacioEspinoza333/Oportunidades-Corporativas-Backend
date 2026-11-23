@@ -5,34 +5,15 @@ import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.example.appproyecto.data.model.Contacto
-import com.example.appproyecto.data.model.Evento
 import com.example.appproyecto.data.model.Evidencia
-import com.example.appproyecto.data.model.Oportunidad
-import com.example.appproyecto.data.model.Organizacion
-import com.example.appproyecto.data.model.Seguimiento
-import com.example.appproyecto.data.model.Usuario
 
+/** Base local: solo guarda las evidencias fotográficas. Todo lo demás vive en el backend. */
 @Database(
-    entities = [
-        Usuario::class,
-        Organizacion::class,
-        Contacto::class,
-        Evento::class,
-        Oportunidad::class,
-        Seguimiento::class,
-        Evidencia::class
-    ],
-    version = 2,
+    entities = [Evidencia::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun usuarioDao(): UsuarioDao
-    abstract fun organizacionDao(): OrganizacionDao
-    abstract fun contactoDao(): ContactoDao
-    abstract fun eventoDao(): EventoDao
-    abstract fun oportunidadDao(): OportunidadDao
-    abstract fun seguimientoDao(): SeguimientoDao
     abstract fun evidenciaDao(): EvidenciaDao
 
     companion object {
@@ -46,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "oportunidades.db"
                 )
                     .setDriver(BundledSQLiteDriver())
+                    // Al subir la versión se descartan las tablas antiguas (usuarios, oportunidades...)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
                     .also { INSTANCE = it }

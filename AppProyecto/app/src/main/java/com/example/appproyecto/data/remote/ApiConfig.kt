@@ -7,4 +7,7 @@ object ApiConfig {
     // - Emulador de Android Studio: 10.0.2.2 es el "localhost" del computador.
     // - Teléfono físico: reemplazar por la IP del computador en el WiFi, ej. "http://192.168.1.50:8080/"
     const val URL_BACKEND = "http://10.0.2.2:8080/"
+
+    // API externa pública de feriados (Nager.Date). No requiere clave. Debe terminar en "/".
+    const val URL_FERIADOS = "https://date.nager.at/"
 }

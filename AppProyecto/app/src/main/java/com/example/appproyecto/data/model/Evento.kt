@@ -1,24 +1,7 @@
 package com.example.appproyecto.data.model
 
-import androidx.room3.Entity
-import androidx.room3.ForeignKey
-import androidx.room3.Index
-import androidx.room3.PrimaryKey
-
-@Entity(
-    tableName = "eventos",
-    foreignKeys = [
-        ForeignKey(
-            entity = Organizacion::class,
-            parentColumns = ["id"],
-            childColumns = ["organizacionId"],
-            onDelete = ForeignKey.RESTRICT
-        )
-    ],
-    indices = [Index("organizacionId"), Index("fechaInicio")]
-)
 data class Evento(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val id: Long = 0,
     val nombre: String,
     val tipo: String = TipoOportunidad.EVENTO_CORPORATIVO.name,
     val descripcion: String = "",
@@ -34,5 +17,6 @@ data class Evento(
     val condiciones: String = "",
     val costoReferencial: Int = 0,
     val observaciones: String = "",
+    /** Ruta de la foto guardada en el teléfono (el backend no almacena fotos). */
     val fotoUri: String? = null
 )

@@ -6,10 +6,8 @@ import com.example.appproyecto.data.remote.LoginRequest
 import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.remote.aUsuario
 import com.example.appproyecto.data.remote.llamarApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
-/** Usuarios y acceso: ahora la verificación de credenciales la hace el backend. */
+/** Usuarios y acceso: la verificación de credenciales la hace el backend. */
 class UsuarioRepository(private val api: ApiService) {
 
     /** Inicia sesión. Si la clave es incorrecta, el backend responde con su mensaje (401). */
@@ -23,18 +21,4 @@ class UsuarioRepository(private val api: ApiService) {
     /** Ejecutivos activos, a quienes el supervisor puede asignar oportunidades. */
     suspend fun ejecutivos(): Respuesta<List<Usuario>> =
         llamarApi { api.ejecutivos().map { it.aUsuario() } }
-
-    // ---------- TEMPORAL ----------
-    // Los ViewModels que aún no se convierten usan estas dos funciones.
-    // Se eliminan cuando todos los módulos usen el backend.
-
-    suspend fun obtenerPorId(id: Long): Usuario? {
-        val respuesta = obtenerActual()
-        return if (respuesta is Respuesta.Exito && respuesta.datos.id == id) respuesta.datos else null
-    }
-
-    fun observarEjecutivos(): Flow<List<Usuario>> = flow {
-        val respuesta = ejecutivos()
-        emit(if (respuesta is Respuesta.Exito) respuesta.datos else emptyList())
-    }
 }
