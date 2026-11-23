@@ -1,37 +1,26 @@
 package com.example.appproyecto.data.repository
 
-import com.example.appproyecto.data.local.EventoDao
 import com.example.appproyecto.data.model.Evento
-import com.example.appproyecto.data.model.Resultado
-import com.example.appproyecto.data.model.Usuario
-import com.example.appproyecto.util.COSTO_MAXIMO
-import kotlinx.coroutines.flow.Flow
+import com.example.appproyecto.data.remote.ApiService
+import com.example.appproyecto.data.remote.Respuesta
+import com.example.appproyecto.data.remote.aEvento
+import com.example.appproyecto.data.remote.aRequest
+import com.example.appproyecto.data.remote.llamarApi
+import com.example.appproyecto.util.FotosEventos
 
-class EventoRepository(private val eventoDao: EventoDao) {
-    fun observarTodos(): Flow<List<Evento>> = eventoDao.observarTodos()
+/** Eventos: los datos vienen del backend y la foto del almacén local. */
+class EventoRepository(
+    private val api: ApiService,
+    private val fotos: FotosEventos
+) {
 
-    suspend fun insertar(evento: Evento) = eventoDao.insertar(evento)
+    suspend fun listar(): Respuesta<List<Evento>> =
+        llamarApi { api.eventos().map { it.aEvento(fotos.obtener(it.id)) } }
 
-    /**
-     * Registra un evento nuevo. Las reglas de negocio se vuelven a comprobar aquí (además del
-     * formulario) para que ninguna pantalla pueda guardar datos incoherentes.
-     */
-    suspend fun crear(actor: Usuario, nuevo: Evento): Resultado {
-        if (!actor.activo) return Resultado.Error("Tu cuenta no está activa")
-        if (nuevo.fechaTermino < nuevo.fechaInicio) {
-            return Resultado.Error("La fecha de término no puede ser anterior al inicio")
+    /** Crea el evento en el backend y, si trae foto, la asocia al id que le asignó el servidor. */
+    suspend fun crear(evento: Evento): Respuesta<Unit> =
+        llamarApi {
+            val creado = api.crearEvento(evento.aRequest())
+            fotos.guardar(creado.id, evento.fotoUri)
         }
-        if (nuevo.costoReferencial < 0 || nuevo.costoReferencial > COSTO_MAXIMO) {
-            return Resultado.Error("El costo referencial no es válido")
-        }
-        if (nuevo.publicoEsperado < 1) {
-            return Resultado.Error("El público esperado debe ser al menos 1 persona")
-        }
-        val nombre = nuevo.nombre.trim()
-        if (eventoDao.contarDuplicados(nombre, nuevo.fechaInicio, nuevo.organizacionId) > 0) {
-            return Resultado.Error("Ya existe un evento con ese nombre, fecha y organización")
-        }
-        eventoDao.insertar(nuevo.copy(id = 0, nombre = nombre))
-        return Resultado.Exito("Evento guardado")
-    }
 }

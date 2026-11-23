@@ -13,12 +13,11 @@ interface EvidenciaDao {
 
     /** Evidencias de una oportunidad, la más reciente primero. */
     @Query("""
-        SELECT v.id AS id, v.rutaFoto AS rutaFoto, v.fecha AS fecha,
-               v.descripcion AS descripcion, u.nombre AS usuarioNombre
-        FROM evidencias v
-        INNER JOIN usuarios u ON u.id = v.usuarioId
-        WHERE v.oportunidadId = :oportunidadId
-        ORDER BY v.fecha DESC, v.id DESC
+        SELECT id AS id, rutaFoto AS rutaFoto, fecha AS fecha,
+               descripcion AS descripcion, usuarioNombre AS usuarioNombre
+        FROM evidencias
+        WHERE oportunidadId = :oportunidadId
+        ORDER BY fecha DESC, id DESC
     """)
     fun observarItemsPorOportunidad(oportunidadId: Long): Flow<List<EvidenciaItem>>
 }

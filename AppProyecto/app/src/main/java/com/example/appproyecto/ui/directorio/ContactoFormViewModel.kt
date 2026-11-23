@@ -1,18 +1,18 @@
 package com.example.appproyecto.ui.directorio
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.AreaContacto
 import com.example.appproyecto.data.model.Contacto
-import com.example.appproyecto.data.model.Resultado
-import com.example.appproyecto.data.model.Usuario
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.repository.ContactoRepository
 import com.example.appproyecto.data.repository.OrganizacionRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
-import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarCorreoContacto
 import com.example.appproyecto.util.validarTelefonoOpcional
 import com.example.appproyecto.util.validarTextoObligatorio
@@ -49,16 +49,10 @@ data class ContactoFormUiState(
 )
 
 class ContactoFormViewModel(
-    application: Application,
-    savedStateHandle: SavedStateHandle
-) : AndroidViewModel(application) {
-
-    private val db = AppDatabase.getInstance(application)
-    private val repository = ContactoRepository(db.contactoDao(), db.organizacionDao())
-    private val organizaciones = OrganizacionRepository(db.organizacionDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val sesion = SesionManager(application)
-    private var actor: Usuario? = null
+    savedStateHandle: SavedStateHandle,
+    private val repository: ContactoRepository,
+    private val organizaciones: OrganizacionRepository
+) : ViewModel() {
 
     private val organizacionId: Long = savedStateHandle["orgId"] ?: 0L
 
@@ -70,25 +64,31 @@ class ContactoFormViewModel(
 
     init {
         viewModelScope.launch {
-            actor = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }?.takeIf { it.activo }
-            val org = organizaciones.obtenerPorId(organizacionId)
-            if (org == null) {
-                _uiState.update { it.copy(cargando = false, errorGeneral = "La organización no existe") }
-                return@launch
-            }
-            _uiState.update { it.copy(organizacionNombre = org.nombre) }
-            if (contactoId != 0L) {
-                val c = repository.obtenerPorId(contactoId)
-                if (c == null || c.organizacionId != organizacionId) {
-                    _uiState.update { it.copy(cargando = false, errorGeneral = "El contacto no existe") }
+            // 1) nombre de la organización para el título
+            when (val org = organizaciones.obtener(organizacionId)) {
+                is Respuesta.Exito -> _uiState.update { it.copy(organizacionNombre = org.datos.nombre) }
+                is Respuesta.Error -> {
+                    _uiState.update { it.copy(cargando = false, errorGeneral = org.mensaje) }
                     return@launch
                 }
-                _uiState.update {
-                    it.copy(
-                        nombre = c.nombre, cargo = c.cargo, area = c.area, correo = c.correo,
-                        telefono = c.telefono, medioPreferente = c.medioPreferente, estado = c.estado,
-                        observaciones = c.observaciones
-                    )
+            }
+            // 2) si es edición, se cargan los datos del contacto
+            if (contactoId != 0L) {
+                when (val r = repository.obtener(contactoId)) {
+                    is Respuesta.Exito -> {
+                        val c = r.datos
+                        _uiState.update {
+                            it.copy(
+                                nombre = c.nombre, cargo = c.cargo, area = c.area, correo = c.correo,
+                                telefono = c.telefono, medioPreferente = c.medioPreferente, estado = c.estado,
+                                observaciones = c.observaciones
+                            )
+                        }
+                    }
+                    is Respuesta.Error -> {
+                        _uiState.update { it.copy(cargando = false, errorGeneral = r.mensaje) }
+                        return@launch
+                    }
                 }
             }
             _uiState.update { it.copy(cargando = false) }
@@ -106,12 +106,7 @@ class ContactoFormViewModel(
 
     fun guardar() {
         val s = _uiState.value
-        val usuario = actor
         if (s.guardando || s.cargando) return
-        if (usuario == null) {
-            _uiState.update { it.copy(errorGeneral = "No hay una sesión activa") }
-            return
-        }
 
         val errNombre = validarTextoObligatorio(s.nombre, "El nombre", 3, 80)
         val errCargo = validarTextoObligatorio(s.cargo, "El cargo", 3, 60)
@@ -143,11 +138,20 @@ class ContactoFormViewModel(
                 estado = s.estado,
                 observaciones = s.observaciones.trim()
             )
-            val resultado = if (s.esEdicion) repository.actualizar(usuario, contacto)
-            else repository.crear(usuario, contacto)
+            val resultado = if (s.esEdicion) repository.actualizar(contacto)
+            else repository.crear(contacto)
             when (resultado) {
-                is Resultado.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
-                is Resultado.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+                is Respuesta.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
+                is Respuesta.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+            }
+        }
+    }
+
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val c = (this[APPLICATION_KEY] as AppProyectoApp).contenedor
+                ContactoFormViewModel(createSavedStateHandle(), c.contactoRepository, c.organizacionRepository)
             }
         }
     }

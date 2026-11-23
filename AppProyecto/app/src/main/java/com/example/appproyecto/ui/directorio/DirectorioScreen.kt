@@ -34,15 +34,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appproyecto.data.model.TipoOrganizacion
 import com.example.appproyecto.data.model.aEnum
+import androidx.compose.material3.Button
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+
 
 /** Lista de organizaciones con búsqueda. El botón "+" lo pone la pantalla principal. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DirectorioScreen(
     onAbrirOrganizacion: (Long) -> Unit,
-    viewModel: DirectorioViewModel = viewModel()
+    viewModel: DirectorioViewModel = viewModel(factory = DirectorioViewModel.Factory)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Cada vez que la pantalla vuelve a mostrarse (por ejemplo, tras guardar), se recarga del backend
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.cargar() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Directorio") })
@@ -71,6 +78,19 @@ fun DirectorioScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) { CircularProgressIndicator() }
+
+            estado.error != null -> Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(estado.error ?: "", style = MaterialTheme.typography.bodyLarge)
+                Button(onClick = viewModel::reintentar, modifier = Modifier.padding(top = 12.dp)) {
+                    Text("Reintentar")
+                }
+            }
 
             estado.organizaciones.isEmpty() -> Column(
                 modifier = Modifier

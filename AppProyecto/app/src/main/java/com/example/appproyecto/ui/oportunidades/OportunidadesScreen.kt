@@ -2,6 +2,7 @@ package com.example.appproyecto.ui.oportunidades
 
 import androidx.compose.animation.AnimatedVisibility
 import com.example.appproyecto.ui.componentes.InsigniaEstado
+import com.example.appproyecto.ui.componentes.MensajeError
 import com.example.appproyecto.ui.theme.coloresApp
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -119,34 +120,45 @@ fun OportunidadesScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
-        if (estado.cargando) {
-            CircularProgressIndicator(
+        when {
+            // Estado 1: cargando
+            estado.cargando -> CircularProgressIndicator(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(24.dp)
             )
-        }
 
-        // Animación: el mensaje de "sin resultados" aparece y desaparece suavemente.
-        AnimatedVisibility(visible = estado.oportunidades.isEmpty() && !estado.cargando) {
-            Text(
-                text = "No hay oportunidades que coincidan con los filtros.",
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Estado 2: error de conexión (no hay nada que mostrar): explicación y "Reintentar"
+            estado.error != null && estado.oportunidades.isEmpty() -> MensajeError(
+                mensaje = estado.error ?: "",
+                onReintentar = viewModel::reintentar,
+                modifier = Modifier.fillMaxSize()
             )
-        }
 
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(estado.oportunidades, key = { it.id }) { item ->
-                // animateItem(): las tarjetas se mueven suavemente cuando cambia la lista.
-                TarjetaOportunidad(
-                    item = item,
-                    onClick = { onAbrirOportunidad(item.id) },
-                    modifier = Modifier.animateItem()
-                )
+            // Estado 3: datos (o lista vacía)
+            else -> {
+                // Animación: el mensaje de "sin resultados" aparece y desaparece suavemente.
+                AnimatedVisibility(visible = estado.oportunidades.isEmpty()) {
+                    Text(
+                        text = "No hay oportunidades que coincidan con los filtros.",
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(estado.oportunidades, key = { it.id }) { item ->
+                        // animateItem(): las tarjetas se mueven suavemente cuando cambia la lista.
+                        TarjetaOportunidad(
+                            item = item,
+                            onClick = { onAbrirOportunidad(item.id) },
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
             }
         }
     }

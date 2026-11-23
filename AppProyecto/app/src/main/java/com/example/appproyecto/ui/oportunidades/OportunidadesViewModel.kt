@@ -3,25 +3,18 @@ package com.example.appproyecto.ui.oportunidades
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.EstadoOportunidad
 import com.example.appproyecto.data.model.OportunidadItem
 import com.example.appproyecto.data.model.Perfil
 import com.example.appproyecto.data.model.Prioridad
-import com.example.appproyecto.data.model.Usuario
-import com.example.appproyecto.data.repository.OportunidadRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
-import com.example.appproyecto.util.SesionManager
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.util.filtrarOportunidades
 import com.example.appproyecto.util.rol
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class OportunidadesUiState(
@@ -30,56 +23,66 @@ data class OportunidadesUiState(
     val estadoFiltro: EstadoOportunidad? = null,
     val prioridadFiltro: Prioridad? = null,
     val oportunidades: List<OportunidadItem> = emptyList(),
-    val cargando: Boolean = true
+    val cargando: Boolean = true,
+    val error: String? = null
 )
 
 class OportunidadesViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getInstance(application)
-    private val repository =
-        OportunidadRepository(db.oportunidadDao(), db.seguimientoDao(), db.usuarioDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val sesion = SesionManager(application)
+    private val contenedor = (application as AppProyectoApp).contenedor
+    private val repository = contenedor.oportunidadRepository
+    private val usuarioRepository = contenedor.usuarioRepository
 
-    /** Usuario que inició sesión; de su rol depende qué oportunidades se cargan. */
-    private val usuario = MutableStateFlow<Usuario?>(null)
+    // Lista completa que entrega el backend; los filtros se aplican sobre esta copia
+    private var todas: List<OportunidadItem> = emptyList()
 
-    private val busqueda = MutableStateFlow("")
-    private val estadoFiltro = MutableStateFlow<EstadoOportunidad?>(null)
-    private val prioridadFiltro = MutableStateFlow<Prioridad?>(null)
+    private val _uiState = MutableStateFlow(OportunidadesUiState())
+    val uiState: StateFlow<OportunidadesUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            usuario.value = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }
+        // Carga al abrir y se vuelve a cargar cada vez que se guarda algo (crear, editar, estado...)
+        viewModelScope.launch { repository.cambios.collect { cargar() } }
+    }
+
+    private suspend fun cargar() {
+        (usuarioRepository.obtenerActual() as? Respuesta.Exito)?.let { r ->
+            _uiState.update { it.copy(perfil = r.datos.rol()) }
+        }
+        when (val r = repository.listar()) {
+            is Respuesta.Exito -> {
+                todas = r.datos
+                _uiState.update { it.copy(cargando = false, error = null, oportunidades = filtrar(it)) }
+            }
+            is Respuesta.Error -> _uiState.update { it.copy(cargando = false, error = r.mensaje) }
         }
     }
 
-    // Supervisor: todas. Ejecutivo: solo las suyas (lo decide el repositorio).
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val items = usuario.filterNotNull().flatMapLatest { repository.observarItemsPara(it) }
+    private fun filtrar(s: OportunidadesUiState): List<OportunidadItem> =
+        filtrarOportunidades(todas, s.busqueda, s.estadoFiltro, s.prioridadFiltro)
 
-    // Se recalcula sola cuando cambian los datos de la base, el usuario O cualquier filtro.
-    val uiState: StateFlow<OportunidadesUiState> = combine(
-        items, usuario, busqueda, estadoFiltro, prioridadFiltro
-    ) { lista, u, texto, estado, prioridad ->
-        OportunidadesUiState(
-            perfil = u?.rol() ?: Perfil.EJECUTIVO,
-            busqueda = texto,
-            estadoFiltro = estado,
-            prioridadFiltro = prioridad,
-            oportunidades = filtrarOportunidades(lista, texto, estado, prioridad),
-            cargando = false
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OportunidadesUiState())
+    fun reintentar() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cargando = true, error = null) }
+            cargar()
+        }
+    }
 
-    fun cambiarBusqueda(texto: String) { busqueda.value = texto }
+    fun cambiarBusqueda(texto: String) {
+        _uiState.update { val nuevo = it.copy(busqueda = texto); nuevo.copy(oportunidades = filtrar(nuevo)) }
+    }
 
     /** Si tocas el filtro ya activo, se desactiva. */
     fun elegirEstado(estado: EstadoOportunidad) {
-        estadoFiltro.value = if (estadoFiltro.value == estado) null else estado
+        _uiState.update {
+            val nuevo = it.copy(estadoFiltro = if (it.estadoFiltro == estado) null else estado)
+            nuevo.copy(oportunidades = filtrar(nuevo))
+        }
     }
 
     fun elegirPrioridad(prioridad: Prioridad) {
-        prioridadFiltro.value = if (prioridadFiltro.value == prioridad) null else prioridad
+        _uiState.update {
+            val nuevo = it.copy(prioridadFiltro = if (it.prioridadFiltro == prioridad) null else prioridad)
+            nuevo.copy(oportunidades = filtrar(nuevo))
+        }
     }
 }

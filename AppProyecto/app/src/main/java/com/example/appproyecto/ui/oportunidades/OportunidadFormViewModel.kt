@@ -4,19 +4,16 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.Evento
 import com.example.appproyecto.data.model.Oportunidad
 import com.example.appproyecto.data.model.Prioridad
-import com.example.appproyecto.data.model.Resultado
 import com.example.appproyecto.data.model.TipoOportunidad
 import com.example.appproyecto.data.model.Usuario
 import com.example.appproyecto.data.model.aEnum
-import com.example.appproyecto.data.repository.EventoRepository
-import com.example.appproyecto.data.repository.OportunidadRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
+import com.example.appproyecto.data.remote.Respuesta
+import com.example.appproyecto.data.remote.aOportunidad
 import com.example.appproyecto.util.Permisos
-import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarFechaLimite
 import com.example.appproyecto.util.validarSeleccion
 import com.example.appproyecto.util.validarTextoObligatorio
@@ -24,7 +21,6 @@ import com.example.appproyecto.util.validarTextoOpcional
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -44,7 +40,7 @@ data class FormUiState(
     val esSupervisor: Boolean = false,
     val cargando: Boolean = true,
     val guardando: Boolean = false,
-    /** El usuario no tiene permiso para ver/editar esta oportunidad. */
+    /** El usuario no tiene permiso para ver/editar esta oportunidad (o no se pudo cargar). */
     val bloqueado: Boolean = false,
     val errorNombre: String? = null,
     val errorEvento: String? = null,
@@ -70,12 +66,10 @@ class OportunidadFormViewModel(
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getInstance(application)
-    private val repository =
-        OportunidadRepository(db.oportunidadDao(), db.seguimientoDao(), db.usuarioDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val eventoRepository = EventoRepository(db.eventoDao())
-    private val sesion = SesionManager(application)
+    private val contenedor = (application as AppProyectoApp).contenedor
+    private val repository = contenedor.oportunidadRepository
+    private val usuarioRepository = contenedor.usuarioRepository
+    private val eventoRepository = contenedor.eventoRepository
 
     private val idEditar: Long = savedStateHandle.get<Long>("id") ?: 0L
     private var original: Oportunidad? = null
@@ -86,47 +80,68 @@ class OportunidadFormViewModel(
 
     init {
         viewModelScope.launch {
-            val usuario = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }
-            if (usuario == null || !usuario.activo) {
-                _uiState.update {
-                    it.copy(cargando = false, bloqueado = true, errorGeneral = "No hay una sesión activa")
+            // 1) Quién es el usuario (el backend lo identifica por el encabezado)
+            val usuario = when (val r = usuarioRepository.obtenerActual()) {
+                is Respuesta.Exito -> r.datos
+                is Respuesta.Error -> {
+                    bloquear(r.mensaje)
+                    return@launch
                 }
+            }
+            if (!usuario.activo) {
+                bloquear("No hay una sesión activa")
                 return@launch
             }
             actor = usuario
             val esSupervisor = Permisos.esSupervisor(usuario)
-            val eventos = eventoRepository.observarTodos().first()
-            val ejecutivos = if (esSupervisor) usuarioRepository.observarEjecutivos().first() else emptyList()
-            _uiState.update { it.copy(eventos = eventos, ejecutivos = ejecutivos, esSupervisor = esSupervisor) }
 
-            if (idEditar != 0L) {
-                // El repositorio devuelve null si el usuario no tiene permiso para ver la oportunidad.
-                val op = repository.obtenerPara(usuario, idEditar)
-                if (op == null) {
-                    _uiState.update {
-                        it.copy(
-                            cargando = false, bloqueado = true,
-                            errorGeneral = "No tienes acceso a esta oportunidad"
-                        )
-                    }
+            // 2) Eventos para el selector
+            val eventos = when (val r = eventoRepository.listar()) {
+                is Respuesta.Exito -> r.datos
+                is Respuesta.Error -> {
+                    bloquear(r.mensaje)
                     return@launch
                 }
-                original = op
-                _uiState.update {
-                    it.copy(
-                        nombre = op.nombre,
-                        descripcion = op.descripcion,
-                        observaciones = op.observaciones,
-                        eventoId = op.eventoId,
-                        prioridad = op.prioridad.aEnum(Prioridad.MEDIA),
-                        potencial = op.potencial,
-                        afinidad = op.afinidad,
-                        fechaLimite = op.fechaLimitePostulacion
-                    )
+            }
+
+            // 3) Ejecutivos (solo el supervisor elige responsable)
+            val ejecutivos = if (esSupervisor) {
+                (usuarioRepository.ejecutivos() as? Respuesta.Exito)?.datos ?: emptyList()
+            } else emptyList()
+            _uiState.update { it.copy(eventos = eventos, ejecutivos = ejecutivos, esSupervisor = esSupervisor) }
+
+            // 4) Si es edición, se cargan los datos (el backend responde 403/404 si no hay acceso)
+            if (idEditar != 0L) {
+                when (val r = repository.detalle(idEditar)) {
+                    is Respuesta.Exito -> {
+                        val op = r.datos.aOportunidad()
+                        original = op
+                        _uiState.update {
+                            it.copy(
+                                nombre = op.nombre,
+                                descripcion = op.descripcion,
+                                observaciones = op.observaciones,
+                                eventoId = op.eventoId,
+                                prioridad = op.prioridad.aEnum(Prioridad.MEDIA),
+                                potencial = op.potencial,
+                                afinidad = op.afinidad,
+                                fechaLimite = op.fechaLimitePostulacion
+                            )
+                        }
+                    }
+                    is Respuesta.Error -> {
+                        val sinPermiso = r.codigoHttp == 403 || r.codigoHttp == 404
+                        bloquear(if (sinPermiso) "No tienes acceso a esta oportunidad" else r.mensaje)
+                        return@launch
+                    }
                 }
             }
             _uiState.update { it.copy(cargando = false) }
         }
+    }
+
+    private fun bloquear(mensaje: String) {
+        _uiState.update { it.copy(cargando = false, bloqueado = true, errorGeneral = mensaje) }
     }
 
     // Cada cambio limpia el error de ese campo: el usuario ve que lo está corrigiendo.
@@ -147,6 +162,7 @@ class OportunidadFormViewModel(
         val usuario = actor ?: return
         if (s.guardando || s.bloqueado) return
 
+        // Primero se validan los campos en el teléfono; el backend vuelve a validar reglas y permisos
         val errNombre = validarTextoObligatorio(s.nombre, "El nombre", 5, 80)
         val errEvento = validarSeleccion(s.eventoId, "un evento")
         val errResp = if (s.puedeElegirResponsable) validarSeleccion(s.responsableId, "un responsable") else null
@@ -170,9 +186,8 @@ class OportunidadFormViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(guardando = true, errorGeneral = null) }
             val base = original
-            val resultado: Resultado = if (base != null) {
+            val resultado = if (base != null) {
                 repository.actualizar(
-                    usuario,
                     base.copy(
                         nombre = s.nombre.trim(),
                         descripcion = s.descripcion.trim(),
@@ -188,7 +203,6 @@ class OportunidadFormViewModel(
                 // El tipo de la oportunidad se toma del evento para no pedir el mismo dato dos veces.
                 val tipo = s.eventos.firstOrNull { it.id == s.eventoId }?.tipo ?: TipoOportunidad.OTRA.name
                 repository.crear(
-                    usuario,
                     Oportunidad(
                         nombre = s.nombre.trim(),
                         tipo = tipo,
@@ -205,10 +219,8 @@ class OportunidadFormViewModel(
                 )
             }
             when (resultado) {
-                is Resultado.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
-                is Resultado.Error -> _uiState.update {
-                    it.copy(guardando = false, errorGeneral = resultado.mensaje)
-                }
+                is Respuesta.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
+                is Respuesta.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
             }
         }
     }

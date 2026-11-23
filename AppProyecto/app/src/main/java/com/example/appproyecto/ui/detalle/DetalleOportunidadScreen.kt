@@ -82,6 +82,8 @@ import com.example.appproyecto.ui.eventos.FotoEvento
 import com.example.appproyecto.util.estaAtrasado
 import com.example.appproyecto.util.formatearFecha
 import com.example.appproyecto.util.formatearFechaHora
+import com.example.appproyecto.ui.componentes.MensajeError
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,6 +134,13 @@ fun DetalleOportunidadScreen(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) { CircularProgressIndicator() }
+
+            // Error de conexión sin datos en pantalla: explicación y "Reintentar"
+            detalle == null && s.error != null -> MensajeError(
+                mensaje = s.error ?: "",
+                onReintentar = viewModel::reintentar,
+                modifier = Modifier.padding(padding).fillMaxSize()
+            )
 
             detalle == null -> Box(
                 modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp),

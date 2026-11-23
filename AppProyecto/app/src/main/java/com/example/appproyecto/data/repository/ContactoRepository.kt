@@ -1,54 +1,24 @@
 package com.example.appproyecto.data.repository
 
-import com.example.appproyecto.data.local.ContactoDao
-import com.example.appproyecto.data.local.OrganizacionDao
 import com.example.appproyecto.data.model.Contacto
-import com.example.appproyecto.data.model.Resultado
-import com.example.appproyecto.data.model.Usuario
-import kotlinx.coroutines.flow.Flow
+import com.example.appproyecto.data.remote.ApiService
+import com.example.appproyecto.data.remote.Respuesta
+import com.example.appproyecto.data.remote.aContacto
+import com.example.appproyecto.data.remote.aRequest
+import com.example.appproyecto.data.remote.llamarApi
 
-class ContactoRepository(
-    private val contactoDao: ContactoDao,
-    private val organizacionDao: OrganizacionDao
-) {
-    fun observarTodos(): Flow<List<Contacto>> = contactoDao.observarTodos()
+/** Contactos de cada organización, consultados al backend. */
+class ContactoRepository(private val api: ApiService) {
 
-    fun observarPorOrganizacion(organizacionId: Long): Flow<List<Contacto>> =
-        contactoDao.observarPorOrganizacion(organizacionId)
+    suspend fun listarPorOrganizacion(organizacionId: Long): Respuesta<List<Contacto>> =
+        llamarApi { api.contactosDeOrganizacion(organizacionId).map { it.aContacto() } }
 
-    fun observarPorId(id: Long): Flow<Contacto?> = contactoDao.observarPorId(id)
+    suspend fun obtener(id: Long): Respuesta<Contacto> =
+        llamarApi { api.contacto(id).aContacto() }
 
-    suspend fun obtenerPorId(id: Long): Contacto? = contactoDao.obtenerPorId(id)
+    suspend fun crear(contacto: Contacto): Respuesta<Unit> =
+        llamarApi { api.crearContacto(contacto.organizacionId, contacto.aRequest()); Unit }
 
-    suspend fun crear(actor: Usuario, nuevo: Contacto): Resultado {
-        if (!actor.activo) return Resultado.Error("Tu cuenta no está activa")
-        if (organizacionDao.obtenerPorId(nuevo.organizacionId) == null) {
-            return Resultado.Error("La organización no existe")
-        }
-        val correo = nuevo.correo.trim().lowercase()
-        if (contactoDao.contarDuplicados(nuevo.organizacionId, correo, excluirId = 0) > 0) {
-            return Resultado.Error("Ya existe un contacto con ese correo en esta organización")
-        }
-        contactoDao.insertar(nuevo.copy(id = 0, nombre = nuevo.nombre.trim(), correo = correo))
-        return Resultado.Exito("Contacto guardado")
-    }
-
-    suspend fun actualizar(actor: Usuario, cambios: Contacto): Resultado {
-        if (!actor.activo) return Resultado.Error("Tu cuenta no está activa")
-        val actual = contactoDao.obtenerPorId(cambios.id) ?: return Resultado.Error("El contacto no existe")
-        val correo = cambios.correo.trim().lowercase()
-        if (contactoDao.contarDuplicados(actual.organizacionId, correo, excluirId = cambios.id) > 0) {
-            return Resultado.Error("Ya existe otro contacto con ese correo en esta organización")
-        }
-        // La organización y la fecha del último contacto no se cambian desde el formulario.
-        contactoDao.actualizar(
-            cambios.copy(
-                organizacionId = actual.organizacionId,
-                fechaUltimoContacto = actual.fechaUltimoContacto,
-                nombre = cambios.nombre.trim(),
-                correo = correo
-            )
-        )
-        return Resultado.Exito("Contacto actualizado")
-    }
+    suspend fun actualizar(contacto: Contacto): Respuesta<Unit> =
+        llamarApi { api.actualizarContacto(contacto.id, contacto.aRequest()); Unit }
 }

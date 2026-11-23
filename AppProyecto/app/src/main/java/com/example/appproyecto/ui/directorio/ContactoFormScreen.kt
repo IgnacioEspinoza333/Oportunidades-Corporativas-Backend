@@ -49,7 +49,7 @@ import com.example.appproyecto.ui.oportunidades.CampoTexto
 @Composable
 fun ContactoFormScreen(
     onVolver: () -> Unit,
-    viewModel: ContactoFormViewModel = viewModel()
+    viewModel: ContactoFormViewModel = viewModel(factory = ContactoFormViewModel.Factory)
 ) {
     val s by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current

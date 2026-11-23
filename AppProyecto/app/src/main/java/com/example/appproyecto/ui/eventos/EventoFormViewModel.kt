@@ -1,17 +1,17 @@
 package com.example.appproyecto.ui.eventos
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import com.example.appproyecto.data.local.AppDatabase
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.appproyecto.AppProyectoApp
 import com.example.appproyecto.data.model.Evento
 import com.example.appproyecto.data.model.Organizacion
-import com.example.appproyecto.data.model.Resultado
 import com.example.appproyecto.data.model.TipoOportunidad
-import com.example.appproyecto.data.model.Usuario
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.repository.EventoRepository
-import com.example.appproyecto.data.repository.UsuarioRepository
-import com.example.appproyecto.util.SesionManager
+import com.example.appproyecto.data.repository.OrganizacionRepository
 import com.example.appproyecto.util.validarCosto
 import com.example.appproyecto.util.validarEntero
 import com.example.appproyecto.util.validarFechaEvento
@@ -21,7 +21,6 @@ import com.example.appproyecto.util.validarTextoObligatorio
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -52,22 +51,21 @@ data class EventoFormUiState(
     val guardado: Boolean = false
 )
 
-class EventoFormViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db = AppDatabase.getInstance(application)
-    private val repository = EventoRepository(db.eventoDao())
-    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
-    private val sesion = SesionManager(application)
-    private var actor: Usuario? = null
+class EventoFormViewModel(
+    private val repository: EventoRepository,
+    private val organizacionesRepo: OrganizacionRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EventoFormUiState())
     val uiState: StateFlow<EventoFormUiState> = _uiState.asStateFlow()
 
     init {
+        // Las organizaciones del selector vienen del backend
         viewModelScope.launch {
-            actor = sesion.usuarioId()?.let { usuarioRepository.obtenerPorId(it) }?.takeIf { it.activo }
-            val organizaciones = db.organizacionDao().observarTodas().first()
-            _uiState.update { it.copy(organizaciones = organizaciones) }
+            when (val r = organizacionesRepo.listar()) {
+                is Respuesta.Exito -> _uiState.update { it.copy(organizaciones = r.datos) }
+                is Respuesta.Error -> _uiState.update { it.copy(errorGeneral = r.mensaje) }
+            }
         }
     }
 
@@ -99,13 +97,9 @@ class EventoFormViewModel(application: Application) : AndroidViewModel(applicati
 
     fun guardar() {
         val s = _uiState.value
-        val usuario = actor
         if (s.guardando) return
-        if (usuario == null) {
-            _uiState.update { it.copy(errorGeneral = "No hay una sesión activa") }
-            return
-        }
 
+        // Primero se validan los campos en el teléfono; el backend vuelve a validar y revisa duplicados
         val errNombre = validarTextoObligatorio(s.nombre, "El nombre", 5, 80)
         val errOrg = validarSeleccion(s.organizacionId, "una organización")
         val errFecha = validarFechaEvento(s.fecha)
@@ -133,7 +127,6 @@ class EventoFormViewModel(application: Application) : AndroidViewModel(applicati
             _uiState.update { it.copy(guardando = true, errorGeneral = null) }
             val inicio = s.fecha!!
             val resultado = repository.crear(
-                usuario,
                 Evento(
                     nombre = s.nombre.trim(),
                     tipo = s.tipo,
@@ -152,8 +145,17 @@ class EventoFormViewModel(application: Application) : AndroidViewModel(applicati
                 )
             )
             when (resultado) {
-                is Resultado.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
-                is Resultado.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+                is Respuesta.Exito -> _uiState.update { it.copy(guardando = false, guardado = true) }
+                is Respuesta.Error -> _uiState.update { it.copy(guardando = false, errorGeneral = resultado.mensaje) }
+            }
+        }
+    }
+
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val c = (this[APPLICATION_KEY] as AppProyectoApp).contenedor
+                EventoFormViewModel(c.eventoRepository, c.organizacionRepository)
             }
         }
     }
