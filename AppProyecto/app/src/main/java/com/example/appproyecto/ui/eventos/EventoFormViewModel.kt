@@ -56,7 +56,7 @@ class EventoFormViewModel(application: Application) : AndroidViewModel(applicati
 
     private val db = AppDatabase.getInstance(application)
     private val repository = EventoRepository(db.eventoDao())
-    private val usuarioRepository = UsuarioRepository(db.usuarioDao())
+    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
     private val sesion = SesionManager(application)
     private var actor: Usuario? = null
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.appproyecto.AppProyectoApp
+import com.example.appproyecto.data.remote.Respuesta
 import com.example.appproyecto.data.repository.UsuarioRepository
 import com.example.appproyecto.util.SesionManager
 import com.example.appproyecto.util.validarCorreo
@@ -28,7 +29,6 @@ data class LoginUiState(
     val loginExitoso: Boolean = false
 )
 
-// Las dependencias llegan por el constructor: el ViewModel no crea nada por su cuenta.
 class LoginViewModel(
     private val repository: UsuarioRepository,
     private val sesion: SesionManager
@@ -55,14 +55,16 @@ class LoginViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(cargando = true) }
-            val usuario = repository.autenticar(estado.correo, estado.password)
-            if (usuario == null) {
-                _uiState.update {
-                    it.copy(cargando = false, errorGeneral = "Correo o contraseña incorrectos")
+            when (val respuesta = repository.autenticar(estado.correo, estado.password)) {
+                is Respuesta.Exito -> {
+                    // Guardamos el usuario: desde ahora cada petición lleva su X-Usuario-Id
+                    sesion.guardar(respuesta.datos.id)
+                    _uiState.update { it.copy(cargando = false, loginExitoso = true) }
                 }
-            } else {
-                sesion.guardar(usuario.id)
-                _uiState.update { it.copy(cargando = false, loginExitoso = true) }
+                // El mensaje viene del backend ("Correo o contraseña incorrectos") o es
+                // "No se pudo conectar con el servidor..." si está apagado
+                is Respuesta.Error ->
+                    _uiState.update { it.copy(cargando = false, errorGeneral = respuesta.mensaje) }
             }
         }
     }

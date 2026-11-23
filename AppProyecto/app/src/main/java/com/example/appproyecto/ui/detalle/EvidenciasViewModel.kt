@@ -49,7 +49,7 @@ class EvidenciasViewModel(
 
     private val db = AppDatabase.getInstance(application)
     private val repository = EvidenciaRepository(db.evidenciaDao(), db.oportunidadDao())
-    private val usuarioRepository = UsuarioRepository(db.usuarioDao())
+    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
     private val sesion = SesionManager(application)
 
     private val oportunidadId: Long = savedStateHandle.get<Long>("id") ?: 0L

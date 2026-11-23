@@ -16,13 +16,12 @@ class ContenedorApp(application: Application) {
     // Recuerda qué usuario inició sesión
     val sesion = SesionManager(application)
 
-    // Base de datos local (Room): se sigue usando para fotos y datos locales
+    // Base de datos local (Room): se sigue usando para fotos y para los módulos aún no migrados
     val baseDatos: AppDatabase by lazy { AppDatabase.getInstance(application) }
 
     // Servicio de Retrofit para hablar con el backend
     val api: ApiService by lazy { ApiClient.crearServicio(sesion) }
 
     // ---------- Repositorios ----------
-    // Por ahora el de usuarios sigue usando Room; en el paso 9 pasará a usar el backend.
-    val usuarioRepository: UsuarioRepository by lazy { UsuarioRepository(baseDatos.usuarioDao()) }
+    val usuarioRepository: UsuarioRepository by lazy { UsuarioRepository(api) }
 }

@@ -39,6 +39,12 @@ import com.example.appproyecto.ui.oportunidades.OportunidadesScreen
 import com.example.appproyecto.ui.perfil.PerfilScreen
 import com.example.appproyecto.ui.supervisor.PanelSupervisorScreen
 import com.example.appproyecto.util.rol
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 enum class Pestana(val ruta: String, val titulo: String, val icono: ImageVector) {
     INICIO("inicio", "Inicio", Icons.Filled.Home),
@@ -66,7 +72,7 @@ fun PrincipalScreen(
     onNuevoEvento: () -> Unit,
     onNuevaOrganizacion: () -> Unit,
     onAbrirOrganizacion: (Long) -> Unit,
-    viewModel: PrincipalViewModel = viewModel()
+    viewModel: PrincipalViewModel = viewModel(factory = PrincipalViewModel.Factory)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -77,8 +83,21 @@ fun PrincipalScreen(
 
     val usuario = estado.usuario
     if (usuario == null) {
+        val mensajeError = estado.error
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            if (estado.cargando) CircularProgressIndicator()
+            if (estado.cargando) {
+                CircularProgressIndicator()
+            } else if (mensajeError != null) {
+                // No se pudo cargar el usuario (por ejemplo, sin conexión): se ofrece reintentar
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(text = mensajeError, textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = viewModel::reintentar) { Text("Reintentar") }
+                }
+            }
         }
     } else {
         ContenidoPrincipal(

@@ -32,7 +32,7 @@ import com.example.appproyecto.data.model.aEnum
 @Composable
 fun PerfilScreen(
     onCerrarSesion: () -> Unit,
-    viewModel: PerfilViewModel = viewModel()
+    viewModel: PerfilViewModel = viewModel(factory = PerfilViewModel.Factory)
 ) {
     val usuario by viewModel.usuario.collectAsStateWithLifecycle()
 
@@ -83,4 +83,4 @@ fun PerfilScreen(
             }
         }
     }
-}
+}

@@ -56,7 +56,7 @@ class ContactoFormViewModel(
     private val db = AppDatabase.getInstance(application)
     private val repository = ContactoRepository(db.contactoDao(), db.organizacionDao())
     private val organizaciones = OrganizacionRepository(db.organizacionDao())
-    private val usuarioRepository = UsuarioRepository(db.usuarioDao())
+    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
     private val sesion = SesionManager(application)
     private var actor: Usuario? = null
 
