@@ -73,7 +73,7 @@ class OportunidadFormViewModel(
     private val db = AppDatabase.getInstance(application)
     private val repository =
         OportunidadRepository(db.oportunidadDao(), db.seguimientoDao(), db.usuarioDao())
-    private val usuarioRepository = UsuarioRepository(db.usuarioDao())
+    private val usuarioRepository = getApplication<com.example.appproyecto.AppProyectoApp>().contenedor.usuarioRepository
     private val eventoRepository = EventoRepository(db.eventoDao())
     private val sesion = SesionManager(application)
 
