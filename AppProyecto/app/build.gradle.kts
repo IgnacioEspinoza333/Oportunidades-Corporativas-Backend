@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -35,6 +36,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -60,9 +64,24 @@ dependencies {
     implementation(libs.androidx.sqlite.bundled)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Conexión con el backend (Retrofit) y con la API externa de feriados
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging)
+}
+kover {
+    reports {
+        filters {
+            includes {
+                classes(
+                    "com.example.appproyecto.util.*",
+                    "com.example.appproyecto.data.repository.*",
+                    "com.example.appproyecto.ui.**.*ViewModel*"
+                )
+            }
+        }
+    }
 }
